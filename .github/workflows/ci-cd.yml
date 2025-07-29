@@ -1,0 +1,268 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+env:
+  NODE_VERSION: '18'
+  CACHE_KEY_PREFIX: 'gtd-tool'
+
+jobs:
+  # Continuous Integration
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18, 20]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: 'gtd-app/package-lock.json'
+      
+      - name: Install dependencies
+        working-directory: ./gtd-app
+        run: npm ci
+      
+      - name: Run linting
+        working-directory: ./gtd-app
+        run: npm run lint
+      
+      - name: Run tests
+        working-directory: ./gtd-app
+        run: npm run test:run
+        env:
+          CI: true
+      
+      - name: Upload test coverage
+        if: matrix.node-version == 18
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./gtd-app/coverage
+          flags: unittests
+          name: codecov-umbrella
+
+  # Security scanning
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'gtd-app/package-lock.json'
+      
+      - name: Install dependencies
+        working-directory: ./gtd-app
+        run: npm ci
+      
+      - name: Run security audit
+        working-directory: ./gtd-app
+        run: npm audit --audit-level=moderate
+      
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --file=gtd-app/package.json
+
+  # Build application
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    
+    outputs:
+      build-hash: ${{ steps.build-info.outputs.hash }}
+      build-timestamp: ${{ steps.build-info.outputs.timestamp }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'gtd-app/package-lock.json'
+      
+      - name: Install dependencies
+        working-directory: ./gtd-app
+        run: npm ci
+      
+      - name: Set build info
+        id: build-info
+        run: |
+          echo "hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+      
+      - name: Build application
+        working-directory: ./gtd-app
+        run: npm run build
+        env:
+          VITE_BUILD_TIMESTAMP: ${{ steps.build-info.outputs.timestamp }}
+          VITE_GIT_COMMIT_HASH: ${{ steps.build-info.outputs.hash }}
+          VITE_ENABLE_ANALYTICS: ${{ github.ref == 'refs/heads/main' }}
+          VITE_ENABLE_ERROR_REPORTING: ${{ github.ref == 'refs/heads/main' }}
+      
+      - name: Optimize build
+        working-directory: ./gtd-app
+        run: |
+          # Create compressed versions
+          find dist -type f \( -name "*.js" -o -name "*.css" -o -name "*.html" \) -exec gzip -k {} \;
+          find dist -type f \( -name "*.js" -o -name "*.css" -o -name "*.html" \) -exec brotli -k {} \;
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ steps.build-info.outputs.hash }}
+          path: gtd-app/dist/
+          retention-days: 30
+      
+      - name: Upload build info
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-info-${{ steps.build-info.outputs.hash }}
+          path: |
+            gtd-app/package.json
+            gtd-app/package-lock.json
+          retention-days: 30
+
+  # Deploy to staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ needs.build.outputs.build-hash }}
+          path: dist/
+      
+      - name: Deploy to Netlify (Staging)
+        uses: nwtgck/actions-netlify@v2.0
+        with:
+          publish-dir: './dist'
+          production-branch: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions - ${{ needs.build.outputs.build-hash }}"
+          enable-pull-request-comment: true
+          enable-commit-comment: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_STAGING_SITE_ID }}
+
+  # Deploy to production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ needs.build.outputs.build-hash }}
+          path: dist/
+      
+      - name: Deploy to Netlify (Production)
+        uses: nwtgck/actions-netlify@v2.0
+        with:
+          publish-dir: './dist'
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Production deploy - ${{ needs.build.outputs.build-hash }}"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PRODUCTION_SITE_ID }}
+      
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "🚀 Production deployment successful!"
+          echo "Build hash: ${{ needs.build.outputs.build-hash }}"
+          echo "Build timestamp: ${{ needs.build.outputs.build-timestamp }}"
+
+  # Performance testing
+  lighthouse:
+    name: Lighthouse Performance Test
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/develop'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          configPath: './gtd-app/.lighthouserc.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+  # Release management
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [build, deploy-production]
+    if: github.event_name == 'release'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ needs.build.outputs.build-hash }}
+          path: dist/
+      
+      - name: Create release archive
+        run: |
+          tar -czf gtd-tool-${{ github.event.release.tag_name }}.tar.gz -C dist .
+          zip -r gtd-tool-${{ github.event.release.tag_name }}.zip dist/
+      
+      - name: Upload release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./gtd-tool-${{ github.event.release.tag_name }}.tar.gz
+          asset_name: gtd-tool-${{ github.event.release.tag_name }}.tar.gz
+          asset_content_type: application/gzip

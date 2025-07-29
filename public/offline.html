@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTD工具 - 离线模式</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9fafb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            text-align: center;
+            max-width: 400px;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            background: #e5e7eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        h1 {
+            color: #111827;
+            margin: 0 0 1rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        p {
+            color: #6b7280;
+            margin: 0 0 1.5rem;
+            line-height: 1.5;
+        }
+        .retry-btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .retry-btn:hover {
+            background: #4338ca;
+        }
+        .features {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #fef3c7;
+            border-radius: 6px;
+            text-align: left;
+        }
+        .features h3 {
+            margin: 0 0 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #92400e;
+        }
+        .features ul {
+            margin: 0;
+            padding-left: 1rem;
+            color: #92400e;
+            font-size: 0.875rem;
+        }
+        .features li {
+            margin-bottom: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">
+            <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
+            </svg>
+        </div>
+        
+        <h1>离线模式</h1>
+        <p>您当前处于离线状态，但仍可以使用GTD工具的基本功能。</p>
+        
+        <button class="retry-btn" onclick="window.location.reload()">
+            重试连接
+        </button>
+        
+        <div class="features">
+            <h3>离线功能</h3>
+            <ul>
+                <li>添加和编辑任务</li>
+                <li>查看现有数据</li>
+                <li>处理工作篮项目</li>
+                <li>组织任务和项目</li>
+            </ul>
+        </div>
+        
+        <p style="margin-top: 1rem; font-size: 0.75rem;">
+            网络连接恢复后，您的更改将自动同步
+        </p>
+    </div>
+    
+    <script>
+        // Check for network connectivity
+        window.addEventListener('online', () => {
+            window.location.reload();
+        });
+        
+        // Show connection status
+        if (navigator.onLine) {
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
