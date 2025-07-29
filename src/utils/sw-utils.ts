@@ -21,7 +21,7 @@ export class ServiceWorkerManager {
   }
 
   private async init() {
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator && !window.location.hostname.includes('stackblitz')) {
       try {
         // Wait for the page to load before registering SW
         if (document.readyState === 'loading') {

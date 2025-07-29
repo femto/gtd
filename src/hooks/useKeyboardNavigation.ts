@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 interface KeyboardNavigationOptions {
   onEscape?: () => void;
@@ -31,7 +31,7 @@ export const useKeyboardNavigation = (
     '[contenteditable="true"]',
   ].join(', ');
 
-  const updateFocusableElements = () => {
+  const updateFocusableElements = useCallback(() => {
     if (!containerRef.current) return;
 
     const elements = Array.from(
@@ -48,38 +48,46 @@ export const useKeyboardNavigation = (
       );
     });
 
-    setFocusableElements(visibleElements);
-  };
+    // Only update if the elements have actually changed
+    setFocusableElements(prevElements => {
+      if (prevElements.length !== visibleElements.length) {
+        return visibleElements;
+      }
+      
+      const hasChanged = prevElements.some((el, index) => el !== visibleElements[index]);
+      return hasChanged ? visibleElements : prevElements;
+    });
+  }, []);
 
-  const focusElement = (index: number) => {
+  const focusElement = useCallback((index: number) => {
     if (index >= 0 && index < focusableElements.length) {
       focusableElements[index].focus();
       setCurrentFocusIndex(index);
     }
-  };
+  }, [focusableElements]);
 
-  const focusFirst = () => {
+  const focusFirst = useCallback(() => {
     focusElement(0);
-  };
+  }, [focusElement]);
 
-  const focusLast = () => {
+  const focusLast = useCallback(() => {
     focusElement(focusableElements.length - 1);
-  };
+  }, [focusElement, focusableElements.length]);
 
-  const focusNext = () => {
+  const focusNext = useCallback(() => {
     const nextIndex = (currentFocusIndex + 1) % focusableElements.length;
     focusElement(nextIndex);
-  };
+  }, [currentFocusIndex, focusableElements.length, focusElement]);
 
-  const focusPrevious = () => {
+  const focusPrevious = useCallback(() => {
     const prevIndex =
       currentFocusIndex <= 0
         ? focusableElements.length - 1
         : currentFocusIndex - 1;
     focusElement(prevIndex);
-  };
+  }, [currentFocusIndex, focusableElements.length, focusElement]);
 
-  const handleKeyDown = (event: KeyboardEvent) => {
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
     const { key, shiftKey, ctrlKey, metaKey } = event;
 
     // Skip if modifier keys are pressed (except Shift for Tab)
@@ -162,7 +170,7 @@ export const useKeyboardNavigation = (
         }
         break;
     }
-  };
+  }, [options, focusableElements.length, focusFirst, focusLast, focusNext, focusPrevious]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -190,7 +198,7 @@ export const useKeyboardNavigation = (
       container.removeEventListener('keydown', handleKeyDown);
       observer.disconnect();
     };
-  }, [focusableElements, currentFocusIndex, options]);
+  }, [updateFocusableElements, handleKeyDown, options.autoFocus, focusFirst]);
 
   return {
     containerRef,
