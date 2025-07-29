@@ -23,6 +23,7 @@ export const QuickInput: React.FC<QuickInputProps> = ({
   const [content, setContent] = useState('');
   const [inputType, setInputType] = useState<InputType>(InputType.TEXT);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const { addInboxItem, isCapturing, captureError } = useGTDStore();
@@ -88,95 +89,137 @@ export const QuickInput: React.FC<QuickInputProps> = ({
 
   return (
     <div className={`quick-input ${className}`}>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="relative">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* 主输入区域 */}
+        <div className={`relative transition-all duration-300 ${isFocused ? 'transform scale-[1.02]' : ''}`}>
           <textarea
             ref={inputRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             placeholder={placeholder}
             disabled={isLoading}
-            className="modern-input w-full resize-none disabled:opacity-50 disabled:cursor-not-allowed"
-            rows={3}
-            style={{ minHeight: '120px' }}
+            className={`
+              w-full resize-none transition-all duration-300 rounded-2xl border-2 p-6 text-lg
+              bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900
+              shadow-lg hover:shadow-xl focus:shadow-2xl
+              ${isFocused 
+                ? 'border-blue-400 dark:border-blue-500 bg-white dark:bg-gray-800' 
+                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+              }
+              disabled:opacity-50 disabled:cursor-not-allowed
+              placeholder:text-gray-400 dark:placeholder:text-gray-500
+              text-gray-900 dark:text-white
+              focus:outline-none focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30
+            `}
+            rows={4}
+            style={{ minHeight: '140px' }}
           />
 
-          {/* 字符计数 */}
-          <div className="absolute bottom-4 right-4 text-xs text-gray-400 dark:text-gray-500 bg-white/80 dark:bg-gray-800/80 px-3 py-1 rounded-full shadow-sm backdrop-blur-sm">
+          {/* 增强的字符计数 */}
+          <div className="absolute bottom-4 right-4 text-xs text-gray-500 dark:text-gray-400 bg-white/90 dark:bg-gray-800/90 px-4 py-2 rounded-full shadow-md backdrop-blur-md border border-gray-200/50 dark:border-gray-600/50">
             {content.length}/5000
           </div>
+
+          {/* 输入状态指示器 */}
+          {isFocused && (
+            <div className="absolute top-4 right-4 flex items-center space-x-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">正在输入...</span>
+            </div>
+          )}
         </div>
 
-        {/* 控制面板 */}
-        <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-700 rounded-2xl p-6 border border-gray-200 dark:border-gray-600 shadow-sm">
-          <div className="flex items-center justify-between flex-wrap gap-6">
-            {/* 左侧：输入类型选择 */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-sm">
-                  <span className="text-white text-sm">📝</span>
+        {/* 美化的控制面板 */}
+        <div className="bg-gradient-to-r from-blue-50 via-white to-purple-50 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 rounded-3xl p-8 border border-gray-200/50 dark:border-gray-600/50 shadow-xl backdrop-blur-sm">
+          <div className="flex items-center justify-between flex-wrap gap-8">
+            {/* 左侧：美化的输入类型选择 */}
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform duration-200">
+                  <span className="text-white text-lg">✨</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  类型
-                </span>
+                <div>
+                  <span className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                    输入类型
+                  </span>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">选择最适合的输入方式</p>
+                </div>
               </div>
               
-              {/* 类型选择按钮组 */}
-              <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 rounded-xl p-1 border border-gray-200 dark:border-gray-600 shadow-sm">
+              {/* 美化的类型选择按钮组 */}
+              <div className="flex items-center space-x-3 bg-white/80 dark:bg-gray-800/80 rounded-2xl p-2 border border-gray-200/50 dark:border-gray-600/50 shadow-lg backdrop-blur-sm">
                 <button
                   type="button"
                   onClick={() => setInputType(InputType.TEXT)}
                   disabled={isLoading}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
                     inputType === InputType.TEXT
-                      ? 'bg-blue-500 text-white shadow-sm'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/50'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-md'
                   }`}
                 >
-                  📝 文本
+                  <span className="mr-2">📝</span>
+                  文本
                 </button>
                 <button
                   type="button"
                   onClick={() => setInputType(InputType.VOICE)}
                   disabled={isLoading}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
                     inputType === InputType.VOICE
-                      ? 'bg-blue-500 text-white shadow-sm'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-200 dark:shadow-green-900/50'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-md'
                   }`}
                 >
-                  🎙️ 语音
+                  <span className="mr-2">🎙️</span>
+                  语音
                 </button>
                 <button
                   type="button"
                   onClick={() => setInputType(InputType.IMAGE)}
                   disabled={isLoading}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
                     inputType === InputType.IMAGE
-                      ? 'bg-blue-500 text-white shadow-sm'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-purple-900/50'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-md'
                   }`}
                 >
-                  🖼️ 图片
+                  <span className="mr-2">🖼️</span>
+                  图片
                 </button>
               </div>
             </div>
 
-            {/* 右侧：提交按钮 */}
+            {/* 右侧：美化的提交按钮 */}
             <button
               type="submit"
               disabled={!content.trim() || isLoading}
-              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none px-8 py-3 text-base font-semibold"
+              className={`
+                relative overflow-hidden px-10 py-4 text-lg font-bold text-white rounded-2xl
+                transition-all duration-300 transform hover:scale-105 active:scale-95
+                disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+                ${!content.trim() || isLoading 
+                  ? 'bg-gray-400 dark:bg-gray-600' 
+                  : 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 shadow-xl hover:shadow-2xl'
+                }
+              `}
             >
+              {/* 按钮光效 */}
+              {!isLoading && content.trim() && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              )}
+              
               {isLoading ? (
-                <span className="flex items-center">
-                  <div className="loading-spinner mr-3"></div>
+                <span className="flex items-center justify-center">
+                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin mr-3"></div>
                   添加中...
                 </span>
               ) : (
-                <span className="flex items-center">
-                  <span className="mr-2">✨</span>
+                <span className="flex items-center justify-center relative z-10">
+                  <span className="mr-3 text-xl">🚀</span>
                   添加到工作篮
                 </span>
               )}
@@ -184,37 +227,48 @@ export const QuickInput: React.FC<QuickInputProps> = ({
           </div>
         </div>
 
-        {/* 快捷键提示 */}
-        <div className="flex items-center justify-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
-          <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-full border border-gray-200 dark:border-gray-600 shadow-sm">
-            <div className="w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs">⚡</span>
+        {/* 美化的快捷键提示 */}
+        <div className="flex items-center justify-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex items-center space-x-3 bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 px-6 py-3 rounded-2xl border border-gray-200/50 dark:border-gray-600/50 shadow-lg backdrop-blur-sm">
+            <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md">
+              <span className="text-white text-sm">⚡</span>
             </div>
-            <span className="font-mono text-gray-700 dark:text-gray-300 font-semibold">
+            <span className="font-mono text-gray-800 dark:text-gray-200 font-bold text-base">
               {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'} + Enter
             </span>
-            <span className="text-gray-500 dark:text-gray-400">快速提交</span>
+            <span className="text-gray-600 dark:text-gray-400 font-medium">快速提交</span>
           </div>
         </div>
 
         {/* 错误提示 */}
         {captureError && (
-          <div className="p-4 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border border-red-200 dark:border-red-700 rounded-xl">
-            <div className="flex items-center">
-              <svg
-                className="h-5 w-5 text-red-500 mr-3 flex-shrink-0"
-                fill="currentColor"
-                viewBox="0 0 20 20"
+          <div className="p-6 bg-gradient-to-r from-red-50 via-red-50 to-pink-50 dark:from-red-900/20 dark:via-red-800/20 dark:to-pink-900/20 border border-red-200 dark:border-red-700 rounded-2xl shadow-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <svg
+                  className="h-6 w-6 text-red-500 mr-4 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <p className="text-base text-red-700 dark:text-red-400 font-semibold">
+                  {captureError}
+                </p>
+              </div>
+              <button
+                onClick={clearCaptureError}
+                className="ml-4 text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-all duration-200 p-2 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transform hover:scale-110"
+                title="关闭错误提示"
               >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-                {captureError}
-              </p>
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
             </div>
           </div>
         )}
