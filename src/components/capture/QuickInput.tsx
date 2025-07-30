@@ -133,97 +133,141 @@ export const QuickInput: React.FC<QuickInputProps> = ({
         </div>
 
         {/* 美化的控制面板 */}
-        <div className="bg-gradient-to-r from-blue-50 via-white to-purple-50 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 rounded-3xl p-8 border border-gray-200/50 dark:border-gray-600/50 shadow-xl backdrop-blur-sm">
-          <div className="flex items-center justify-between flex-wrap gap-8">
-            {/* 左侧：美化的输入类型选择 */}
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform duration-200">
-                  <span className="text-white text-lg">✨</span>
-                </div>
-                <div>
-                  <span className="text-lg font-bold text-gray-800 dark:text-gray-200">
-                    输入类型
-                  </span>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">选择最适合的输入方式</p>
-                </div>
+        <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 rounded-3xl p-8 border border-gray-200/30 dark:border-gray-600/30 shadow-2xl backdrop-blur-lg">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+            {/* 重新设计的输入类型选择区域 */}
+            <div className="w-full lg:flex-1">
+              <div className="text-center lg:text-left mb-6">
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                  选择输入方式
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  根据您的需求选择最合适的输入类型
+                </p>
               </div>
               
-              {/* 美化的类型选择按钮组 */}
-              <div className="flex items-center space-x-3 bg-white/80 dark:bg-gray-800/80 rounded-2xl p-2 border border-gray-200/50 dark:border-gray-600/50 shadow-lg backdrop-blur-sm">
+              {/* 卡片式类型选择器 */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <button
                   type="button"
                   onClick={() => setInputType(InputType.TEXT)}
                   disabled={isLoading}
-                  className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
+                  className={`group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 ${
                     inputType === InputType.TEXT
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/50'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-md'
+                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl shadow-blue-200 dark:shadow-blue-900/50 ring-2 ring-blue-300'
+                      : 'bg-white/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 shadow-lg hover:shadow-xl border border-gray-200/50 dark:border-gray-600/50'
                   }`}
                 >
-                  <span className="mr-2">📝</span>
-                  文本
+                  <div className="relative z-10">
+                    <div className={`text-3xl mb-3 transition-transform duration-300 group-hover:scale-110 ${
+                      inputType === InputType.TEXT ? 'animate-pulse' : ''
+                    }`}>
+                      📝
+                    </div>
+                    <div className="font-bold text-lg mb-1">文本输入</div>
+                    <div className={`text-xs opacity-80 ${
+                      inputType === InputType.TEXT ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      快速记录想法
+                    </div>
+                  </div>
+                  {inputType === InputType.TEXT && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  )}
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setInputType(InputType.VOICE)}
                   disabled={isLoading}
-                  className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
+                  className={`group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 ${
                     inputType === InputType.VOICE
-                      ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-200 dark:shadow-green-900/50'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-md'
+                      ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-xl shadow-green-200 dark:shadow-green-900/50 ring-2 ring-green-300'
+                      : 'bg-white/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 shadow-lg hover:shadow-xl border border-gray-200/50 dark:border-gray-600/50'
                   }`}
                 >
-                  <span className="mr-2">🎙️</span>
-                  语音
+                  <div className="relative z-10">
+                    <div className={`text-3xl mb-3 transition-transform duration-300 group-hover:scale-110 ${
+                      inputType === InputType.VOICE ? 'animate-pulse' : ''
+                    }`}>
+                      🎙️
+                    </div>
+                    <div className="font-bold text-lg mb-1">语音输入</div>
+                    <div className={`text-xs opacity-80 ${
+                      inputType === InputType.VOICE ? 'text-green-100' : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      语音转文字
+                    </div>
+                  </div>
+                  {inputType === InputType.VOICE && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  )}
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setInputType(InputType.IMAGE)}
                   disabled={isLoading}
-                  className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
+                  className={`group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 ${
                     inputType === InputType.IMAGE
-                      ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-purple-900/50'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-md'
+                      ? 'bg-gradient-to-br from-purple-500 to-violet-600 text-white shadow-xl shadow-purple-200 dark:shadow-purple-900/50 ring-2 ring-purple-300'
+                      : 'bg-white/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 shadow-lg hover:shadow-xl border border-gray-200/50 dark:border-gray-600/50'
                   }`}
                 >
-                  <span className="mr-2">🖼️</span>
-                  图片
+                  <div className="relative z-10">
+                    <div className={`text-3xl mb-3 transition-transform duration-300 group-hover:scale-110 ${
+                      inputType === InputType.IMAGE ? 'animate-pulse' : ''
+                    }`}>
+                      🖼️
+                    </div>
+                    <div className="font-bold text-lg mb-1">图片输入</div>
+                    <div className={`text-xs opacity-80 ${
+                      inputType === InputType.IMAGE ? 'text-purple-100' : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      上传图片
+                    </div>
+                  </div>
+                  {inputType === InputType.IMAGE && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  )}
                 </button>
               </div>
             </div>
-
             {/* 右侧：美化的提交按钮 */}
-            <button
-              type="submit"
-              disabled={!content.trim() || isLoading}
-              className={`
-                relative overflow-hidden px-10 py-4 text-lg font-bold text-white rounded-2xl
-                transition-all duration-300 transform hover:scale-105 active:scale-95
-                disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
-                ${!content.trim() || isLoading 
-                  ? 'bg-gray-400 dark:bg-gray-600' 
-                  : 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 shadow-xl hover:shadow-2xl'
-                }
-              `}
-            >
-              {/* 按钮光效 */}
-              {!isLoading && content.trim() && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-              )}
-              
-              {isLoading ? (
-                <span className="flex items-center justify-center">
-                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin mr-3"></div>
-                  添加中...
-                </span>
-              ) : (
-                <span className="flex items-center justify-center relative z-10">
-                  <span className="mr-3 text-xl">🚀</span>
-                  添加到工作篮
-                </span>
-              )}
-            </button>
+            <div className="w-full lg:w-auto lg:flex-shrink-0">
+              <button
+                type="submit"
+                disabled={!content.trim() || isLoading}
+                className={`
+                  group relative overflow-hidden w-full lg:w-auto px-12 py-5 text-lg font-bold text-white rounded-2xl
+                  transition-all duration-300 transform hover:scale-105 active:scale-95
+                  disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+                  ${!content.trim() || isLoading 
+                    ? 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700' 
+                    : 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 shadow-2xl hover:shadow-3xl'
+                  }
+                `}
+              >
+                {/* 按钮光效 */}
+                {!isLoading && content.trim() && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                )}
+                
+                <div className="relative z-10 flex items-center justify-center">
+                  {isLoading ? (
+                    <>
+                      <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin mr-3"></div>
+                      <span>添加中...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-3 text-2xl">🚀</span>
+                      <span>添加到工作篮</span>
+                    </>
+                  )}
+                </div>
+              </button>
+            </div>
           </div>
         </div>
 
