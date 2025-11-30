@@ -2,6 +2,8 @@
 
 A production-quality GTD (Getting Things Done) task management application inspired by OmniFocus. Built with React, Node.js, and SQLite.
 
+![GTD Pro Screenshot](screenshots/image.png)
+
 ## Overview
 
 GTD Pro implements David Allen's Getting Things Done methodology with a clean, keyboard-first interface optimized for productivity. The application provides all the core features you'd expect from a professional task management tool:
@@ -108,24 +110,9 @@ gtd-app/
 │   │   ├── schema.sql       # Database schema
 │   │   └── migrations/      # Future migrations
 │   └── package.json
-├── feature_list.json        # All features to implement (200+)
 ├── init.sh                  # Setup script
 └── README.md
 ```
-
-## Feature List
-
-The complete list of features to implement is tracked in `feature_list.json`. This file contains 200+ test cases organized by category:
-
-- **Functional tests** - Core application functionality
-- **Style tests** - UI/UX and visual requirements
-
-Each feature includes:
-- Description of what to test
-- Step-by-step testing instructions
-- Pass/fail status
-
-**Important:** Features in this file should NEVER be removed or modified, only marked as passing when implemented.
 
 ## GTD Methodology
 
@@ -204,17 +191,7 @@ npm test
 
 ## Contributing
 
-This project is being built by autonomous AI agents. Each session:
-1. Reads `feature_list.json` to understand what needs to be done
-2. Implements features from the list
-3. Marks features as passing when complete
-4. Commits progress
-
-Future agents should:
-- Never remove or modify features in `feature_list.json`
-- Work on ONE feature at a time
-- Test thoroughly before marking as passing
-- Commit frequently with descriptive messages
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
