@@ -40,7 +40,7 @@ router.get('/', requireAuth, (req, res) => {
 router.post('/', requireAuth, (req, res) => {
   try {
     const db = getDb();
-    const { title, notes } = req.body;
+    const { title, notes, tagIds } = req.body;
 
     if (!title || !title.trim()) {
       return res.status(400).json({ error: 'Title is required' });
@@ -53,8 +53,37 @@ router.post('/', requireAuth, (req, res) => {
       VALUES (?, ?, ?, ?, 1)
     `).run(id, req.user.id, title.trim(), notes || null);
 
-    const item = db.prepare('SELECT * FROM actions WHERE id = ?').get(id);
-    res.json({ ...item, tags: [] });
+    // Add tags if provided
+    if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
+      const insertTag = db.prepare(`
+        INSERT INTO action_tags (id, action_id, tag_id)
+        VALUES (?, ?, ?)
+      `);
+      tagIds.forEach(tagId => {
+        insertTag.run(uuidv4(), id, tagId);
+      });
+    }
+
+    // Fetch item with tags
+    const item = db.prepare(`
+      SELECT a.*,
+        (SELECT GROUP_CONCAT(t.id || ':' || t.name || ':' || t.color, ',')
+         FROM action_tags at
+         JOIN tags t ON at.tag_id = t.id
+         WHERE at.action_id = a.id) as tags
+      FROM actions a
+      WHERE a.id = ?
+    `).get(id);
+
+    const result = {
+      ...item,
+      tags: item.tags ? item.tags.split(',').map(t => {
+        const [id, name, color] = t.split(':');
+        return { id, name, color };
+      }) : []
+    };
+
+    res.json(result);
   } catch (error) {
     console.error('Create inbox item error:', error);
     res.status(500).json({ error: 'Failed to create inbox item' });

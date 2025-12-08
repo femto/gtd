@@ -35,12 +35,12 @@ router.post('/register', async (req, res) => {
 
     // Create default tags for new user
     const defaultTags = [
-      { name: '@Home', color: '#10B981' },
-      { name: '@Office', color: '#3B82F6' },
-      { name: '@Computer', color: '#8B5CF6' },
-      { name: '@Phone', color: '#F59E0B' },
-      { name: '@Errands', color: '#EF4444' },
-      { name: '@Anywhere', color: '#6B7280' }
+      { name: '#Home', color: '#10B981' },
+      { name: '#Office', color: '#3B82F6' },
+      { name: '#Computer', color: '#8B5CF6' },
+      { name: '#Phone', color: '#F59E0B' },
+      { name: '#Errands', color: '#EF4444' },
+      { name: '#Anywhere', color: '#6B7280' }
     ];
 
     defaultTags.forEach((tag, index) => {

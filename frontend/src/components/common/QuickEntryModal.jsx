@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Plus } from 'lucide-react';
-import { inbox } from '../../services/api';
+import { X, Plus, Tag as TagIcon } from 'lucide-react';
+import { inbox, tags as tagsApi } from '../../services/api';
 
 export default function QuickEntryModal({ onClose, onSuccess }) {
   const [title, setTitle] = useState('');
@@ -8,11 +8,24 @@ export default function QuickEntryModal({ onClose, onSuccess }) {
   const [showNotes, setShowNotes] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [availableTags, setAvailableTags] = useState([]);
+  const [selectedTagIds, setSelectedTagIds] = useState([]);
+  const [showTags, setShowTags] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
     inputRef.current?.focus();
+    fetchTags();
   }, []);
+
+  const fetchTags = async () => {
+    try {
+      const data = await tagsApi.getAll();
+      setAvailableTags(data);
+    } catch (err) {
+      console.error('Failed to fetch tags:', err);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,9 +35,14 @@ export default function QuickEntryModal({ onClose, onSuccess }) {
     setError('');
 
     try {
-      await inbox.create({ title: title.trim(), notes: notes.trim() || undefined });
+      await inbox.create({
+        title: title.trim(),
+        notes: notes.trim() || undefined,
+        tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
+      });
       setTitle('');
       setNotes('');
+      setSelectedTagIds([]);
 
       // Dispatch event to notify inbox page to refresh
       window.dispatchEvent(new CustomEvent('inbox-updated'));
@@ -35,6 +53,14 @@ export default function QuickEntryModal({ onClose, onSuccess }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleTag = (tagId) => {
+    setSelectedTagIds(prev =>
+      prev.includes(tagId)
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
   };
 
   const handleKeyDown = (e) => {
@@ -94,6 +120,38 @@ export default function QuickEntryModal({ onClose, onSuccess }) {
               className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
               + Add notes
+            </button>
+          )}
+
+          {/* Tags section */}
+          {showTags ? (
+            <div className="mt-3">
+              <div className="flex flex-wrap gap-2">
+                {availableTags.map(tag => (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => toggleTag(tag.id)}
+                    className={`px-2 py-1 text-xs rounded-full transition-colors ${
+                      selectedTagIds.includes(tag.id)
+                        ? 'text-white'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                    style={selectedTagIds.includes(tag.id) ? { backgroundColor: tag.color } : {}}
+                  >
+                    {tag.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowTags(true)}
+              className="mt-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex items-center gap-1"
+            >
+              <TagIcon className="w-3.5 h-3.5" />
+              Add tags
             </button>
           )}
 
