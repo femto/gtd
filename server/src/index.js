@@ -12,6 +12,7 @@ import foldersRoutes from './routes/folders.js';
 import reviewRoutes from './routes/review.js';
 import searchRoutes from './routes/search.js';
 import statsRoutes from './routes/stats.js';
+import feedbackRoutes from './routes/feedback.js';
 
 const app = express();
 const PORT = process.env.PORT || 3334;
@@ -44,6 +45,7 @@ app.use('/api/folders', foldersRoutes);
 app.use('/api/review', reviewRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {

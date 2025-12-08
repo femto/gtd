@@ -171,6 +171,21 @@ CREATE TABLE IF NOT EXISTS sessions (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Feedback table (for bug reports and feature requests)
+CREATE TABLE IF NOT EXISTS feedback (
+  id TEXT PRIMARY KEY,
+  type TEXT NOT NULL CHECK(type IN ('bug', 'feature', 'comment')),
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  email TEXT,
+  user_agent TEXT,
+  url TEXT,
+  status TEXT DEFAULT 'new' CHECK(status IN ('new', 'reviewed', 'resolved', 'closed')),
+  created_at TEXT DEFAULT (datetime('now')),
+  resolved_at TEXT,
+  notes TEXT
+);
+
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_actions_user ON actions(user_id);
 CREATE INDEX IF NOT EXISTS idx_actions_project ON actions(project_id);
@@ -185,3 +200,6 @@ CREATE INDEX IF NOT EXISTS idx_action_tags_action ON action_tags(action_id);
 CREATE INDEX IF NOT EXISTS idx_action_tags_tag ON action_tags(tag_id);
 CREATE INDEX IF NOT EXISTS idx_folders_user ON folders(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_feedback_type ON feedback(type);
+CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback(status);
+CREATE INDEX IF NOT EXISTS idx_feedback_created ON feedback(created_at);

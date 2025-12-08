@@ -21,6 +21,9 @@ import CompletedPage from './components/perspectives/CompletedPage';
 // Settings
 import SettingsPage from './components/settings/SettingsPage';
 
+// Admin
+import FeedbackPage from './components/admin/FeedbackPage';
+
 // Protected Route wrapper
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -89,6 +92,7 @@ function AppRoutes() {
         <Route path="review" element={<ReviewPage />} />
         <Route path="completed" element={<CompletedPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="admin/feedback" element={<FeedbackPage />} />
       </Route>
 
       {/* Catch all */}

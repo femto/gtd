@@ -17,25 +17,24 @@ export default function FeedbackButton() {
     setSubmitting(true);
 
     try {
-      // For now, just log to console. Later this can send to backend or external service
       const feedback = {
         type,
         title: title.trim(),
         description: description.trim(),
         email: email.trim() || undefined,
-        timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent,
         url: window.location.href
       };
 
-      console.log('Feedback submitted:', feedback);
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(feedback)
+      });
 
-      // TODO: Send to backend API
-      // await fetch('/api/feedback', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(feedback)
-      // });
+      if (!response.ok) {
+        throw new Error('Failed to submit feedback');
+      }
 
       setSubmitted(true);
       setTimeout(() => {
