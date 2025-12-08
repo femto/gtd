@@ -54,7 +54,12 @@ export default function TagsPage() {
     if (!newTagName.trim()) return;
 
     try {
-      const tag = await tagsApi.create({ name: newTagName.trim() });
+      // Ensure tag starts with #
+      const tagName = newTagName.trim().startsWith('#')
+        ? newTagName.trim()
+        : `#${newTagName.trim()}`;
+
+      const tag = await tagsApi.create({ name: tagName });
       setTags([...tags, tag]);
       setNewTagName('');
       setShowNewTag(false);
@@ -136,7 +141,7 @@ export default function TagsPage() {
               type="text"
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
-              placeholder="Tag name..."
+              placeholder="Tag name (# will be added automatically)..."
               className="flex-1 bg-transparent border-0 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0"
               autoFocus
             />
